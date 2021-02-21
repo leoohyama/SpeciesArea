@@ -11,11 +11,11 @@
 10,"Schoerder et al, 2004",1995,Mainland,Habitat-patches,-20.75,-42.833333,"Vicosam, Brazil",Neotropic,17,3.21,93.37,1.463702326,,,Baited pitfalls,1,0.525,0.03481,0.93,Y,calculated some,paper
 11,Wetterer,2002,Insular,Oceanic,-21.269657,-175.0435,Kingdom of Tonga,Oceania,7,87000000,18272000000,2.322266834,53,,"Hand, Museum records",2,0.19,0.08,0.43,N,calculated some,paper
 12,Trainor & Andersen 2010,2003-2006,Insular,Mixed,-9.8628,124.331,Timor,Indomalaya,5,140000000,30777000000,2.342098249,154,,"pitfall, hand",2,0.39,0.113,0.67,Y,,self
-13,Sarnat et al 2013,2008,Insular,Oceanic,-9.155282,159.799091,Solomon,Australasia,,183000,5.302E+15,10.46198863,237,,"hand, litter, museum collection",3,0.09,0.04,0.09,N,calculated some,self
+13,Sarnat et al 2013,2008,Insular,Oceanic,-9.155282,159.799091,Solomon,Australasia,,183000,5.30E+15,10.46198863,237,,"hand, litter, museum collection",3,0.09,0.04,0.09,N,calculated some,self
 14a,"Boulton & Ward, Island Biogeography of the Sea of Cortez , chp 5",n/a,Insular,Oceanic,26.7313,-110.7122,Sea of Cortez,Neotropic,37,4000,1173400000,5.467386093,65,,"museum, pitfall, hand",3,0.33,,0.66,Y,High Confidence sampling data set,paper
 14b,"Boulton & Ward, Island Biogeography of the Sea of Cortez , chp 18",n/a,Insular,Oceanic,26.7313,-110.7122,Sea of Cortez,Neotropic,37,4000,1173400000,5.467386093,65,,"Museum collections, pitfalls",3,0.11,,0.24,Y,Low Confidence sampling data set,paper
 15,Woinarski et al 1998,,Insular,Continental,-11.968581,135.692886,Wesell and English Islands Company groups,Australasia,34,15000,209730000,4.145569298,74,,"Pitfall, baits",2,0.29,0.03,0.71,Y,,self/paper
-16,Wilson zoogeography of caribean insects: chapter 9: The biogeography of the west indian ants,,Insular,Continental,18.728625,-71.116239,West Indian Isands,Neotropic,,26000000,1.14525E+11,3.643926952,383,,Unknown,1,0.28,0.06,0.47,Y,,self/paper
+16,Wilson zoogeography of caribean insects: chapter 9: The biogeography of the west indian ants,,Insular,Continental,18.728625,-71.116239,West Indian Isands,Neotropic,,26000000,1.15E+11,3.643926952,383,,Unknown,1,0.28,0.06,0.47,Y,,self/paper
 17,Vasconcelos et al. 2006,2001-2002,Mainland,Habitat-patches,-2.5,-54.95,Alter do Chao,Neotropic,26,23892,3610000,2.179254696,268,,"baits, hand, wrinkler",3,0.04,0.01,0.3,Y,,self
 18a,Choi et al 1993,,Insular,Oceanic,33.309075,129.675633,Japan,Palearctic,4,134000000,79000000000,2.770522293,83,,,,0.22,,,,,paper
 18b,Choi et al 1993,,Insular,Continental,35.007123,127.717349,Korea,Palearctic,7,5900000,24600000000,3.620083095,66,,,,0.15,,,,,paper
@@ -35,3 +35,4 @@
 30c,Sanders_2002,,Mainland,Habitat-patches,39.276488,-110.570176,Western United States,Nearctic,3,,,,,,,,0.523,,0.53,Y,,paper
 31,Sugiura,,Insular,Oceanic,27.069369,142.216814,Japan,Palearctic,5,490000,23990000,1.689834168,23,,,,0.17,0.03,0.86,Y,,paper
 32,Leal et al. 2012,,Mainland,Habitat-patches,-8.866667,-35.866667,"Brazil, Usina Serra Grande",Neotropic,19,101700,35000000,2.536747091,146,,Leaf litter,1,0.05,0.03,0.1,N,,self
+33,"Wetterer, J.K., X. Espadaler, A.L. Wetterer, and S.G.M. Cabral. 2004. Native and exotic ants of the Azores (Hymenoptera: Formicidae). Sociobiology 44: 1-20.",2004,Insular,Oceanic,38.553958,-25.495773,"Azores, Portugal",Palearctic,9,20000000,769000000,1.584896344,14,,"Leaflitter, previous records",2,0.45,0.07,0.84,Y,,self

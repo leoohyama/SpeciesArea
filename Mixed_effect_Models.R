@@ -4,82 +4,120 @@ library(tidyverse)
 library(lme4)
 library(MuMIn)
 library(ggeffects)
-df<-read.csv("s_area_trial.csv") # load data
+library(glmmTMB)
+library(bbmle)
 
-#we filter data 
-df1<-df %>%
+
+df<-read.csv("s_area_trial.csv") # load data
+#get rid of repeats
+df <- df %>%
   filter(!Island_or_Mainland == "Mainland") %>%
   filter(!is.na(Species.Richness)) %>%
   filter(! Species.Richness == 0)
 
+
+#count number of studies 
+length(unique(df$Study_ID))
+
+df %>% group_by(Ecoregion, Island.Type) %>%
+  summarise(n())
+#quick plot to see distribution of islands by study
+df %>% group_by(Study_ID, SAR_TYPE) %>%
+  summarise(n()) %>%
+  group_by(SAR_TYPE) %>%
+  summarise(n())
+
+#get variables in order
+df$SAR_TYPE<-as.factor(df$SAR_TYPE)
+df$Ecoregion<-as.factor(df$Ecoregion)
+df$Island.Type<-as.factor(df$Island.Type)
+df$Area_km <- df$Island.Area..m2. / 1e+6 #turn it into square km
+
 #log transfrom area and SR
-df1$log_areas<-log10(df1$Island.Area..m2.)
-df1$response <- log10(df1$Species.Richness)
+df$log_areas<-log(df$Island.Area..m2.)
+df$response <- log(df$Species.Richness)
+df$log_areas_km<-log(df$Area_km)
 
-###Models
-m1<-lmer(data =df1, response~ log_areas + (Ecoregion|SAR_TYPE),
-         control = lmerControl(optimizer ="Nelder_Mead"), REML = F) #conveergence issues
-m2<-lmer(data =df1, response~ log_areas +  (1|Ecoregion) + (1|SAR_TYPE))  
-m3<-glmer.nb(data =df1, Species.Richness ~ scale(Island.Area..m2.) +  (1|Ecoregion) + (1|SAR_TYPE)) #competing model
-m4<-glmer.nb(data =df1, Species.Richness ~ scale(Island.Area..m2.) +  (SAR_TYPE|Ecoregion)) #convergence issues
+################################################################################
+###let's separtate datasets and analyze only true islands##############################
+################################################################################
+island<-df %>% filter(! SAR_TYPE == "Mainland")
+mainland<-df %>% filter(! SAR_TYPE == "Insular")
+island %>% group_by(Island.Type) %>%
+  summarise(tot=n())
 
-ranef(m2) #random effects
-isSingular(m2) #checking for singularity
-summary(m2) #summary
-r.squaredGLMM(m2) # rsquares
-AICc(m2,m3) #competing model checking
+###Models for insular
+m1<-lmer(data =island, response~ log_areas_km + (1+log_areas_km|Ecoregion)) 
+m2<-lmer(data =island, response~ Island.Type + log_areas_km + (1+log_areas_km|Ecoregion)) 
+m3<-lmer(data =island, response~ log_areas_km + (1|Island.Type/Ecoregion)) 
 
-#chcking model residuals
-plot(m2)
-hist(residuals(m2))
+
+#models for mainland
+n1<-lmer(data =mainland, response~ log_areas + (1|Ecoregion)) 
+n2<-lmer(data =mainland, response~ log_areas + (1+log_areas|Ecoregion)) 
 
 #extract marginal and conditonal effects
-pr<-ggpredict(m2, c("log_areas", "Ecoregion", "SAR_TYPE"), type = "re")
-pr2<-ggpredict(m2, c("log_areas"), type = "fe")
-ranef(m2)
-plot(pr2)
-trial_data_main<-data.frame(pr) #randoms
-fixed_effects<-data.frame(pr2) #fixed effects
+pr<-ggpredict(m1, c("log_areas_km", "Ecoregion"), type = "re")
 
-trial_data_Neo<-data.frame(pr)
-random_intercepts<-ggplot()+
-  geom_line(data=trial_data_main, mapping = aes(x = x, y = predicted, color = group)) +
-  facet_wrap(~facet) +
-  geom_point(data = df1, mapping = aes(x = log_areas, y = response, color = Ecoregion),
-             alpha = 0.6) +
-  scale_color_viridis_d(option = "C") +
+pr2<-ggpredict(m2, c("log_areas_km"), type = "fe")
+
+insular1<-data.frame(pr) #random ef
+insular2<-data.frame(pr2) #fixed ef
+
+
+
+insular_only_model_m<-ggplot() +
+  geom_ribbon(data = insular2, aes(x =x, ymin = conf.low, ymax = conf.high),fill = "white",alpha = 0.2) +
+  geom_point(data = island, aes(x = log_areas_km, y = response, fill = Ecoregion), pch = 21,
+             color = "black",alpha = 0.7, size = 1.5) +
+  geom_line(data = insular2, aes(x = x, y = predicted), color = "black", size = 1) +
+  scale_color_viridis_d(option = "D") +
+  scale_fill_viridis_d(option = "D") +
   labs(x = "Log(Area)", y = "Log(Species Richness)", color = "Biogeographic \nRealm") +
   theme_dark() +
-  theme(axis.title = element_text(face= "bold", size =8),
+  theme(axis.title = element_text(face= "bold", size =12),
+        axis.text = element_text(size =10),
         legend.text = element_text(size = 6),
-        legend.title = element_text(face = "bold", size =5))
+        legend.title = element_text(face = "bold", size =5), legend.position = "none")
+
+insular_only_model_m
 
 
-marginal_effects<-ggplot() +
-  geom_point(data = df1, aes(x = log_areas, y = response, color = SAR_TYPE),alpha = 0.6) +
-  geom_ribbon(data = fixed_effects, aes(x= x , ymin= conf.low, ymax = conf.high), 
-              alpha=0.3) +
-  geom_line(data = fixed_effects, aes(x = x, y = predicted)) +
-  labs(x = "Log(Area)", y = "Log(Species Richness)", color = "SAR Type") +
-  theme_bw() +
-  theme(axis.title = element_text(face= "bold", size =8),
+insular_only_model_r<-ggplot() +
+  geom_point(data = island, aes(x = log_areas_km, y = response, fill = Ecoregion), pch = 21,
+             color = "black",alpha = 0.7, size = 1.5) +
+  geom_line(data = insular1, aes(x = x, y = predicted, color =group), size = 1) +
+  scale_color_viridis_d(option = "D") +
+  scale_fill_viridis_d(option = "D") +
+  labs(x = "Log(Area)", y = "Log(Species Richness)", color = "Biogeographic \nRealm") +
+  theme_dark() +
+  theme(axis.title = element_text(face= "bold", size =12),
+        axis.text = element_text(size =10),
         legend.text = element_text(size = 6),
-        legend.title = element_text(face = "bold", size =5))+
-  scale_color_manual(values  = c("skyblue", "orange"))
+        legend.title = element_text(face = "bold", size =5), 
+        legend.position = "none")
 
-random_intercepts + {
-  SAR_type_plot + {
-    marginal_effects
-  }
-} +
-  plot_layout(ncol=1) +
-  plot_annotation(tag_levels = "A")
+insular_only_model_r
 
+
+saveRDS(insular_only_model_r, "random_effect_plot")
+saveRDS(insular_only_model_m, "fixed_effect_plot")
+
+insular_only_model_m<-readRDS("fixed_effect_plot")
+insular_only_model_r<-readRDS("random_effect_plot")
+World_map<-readRDS("worldmap.rds")
+library(patchwork)
+map<-(World_map | (insular_only_model_m / insular_only_model_r + plot_layout(guides = 'auto'))) + plot_layout(guides = 'auto', width = c(2,0.6)) + plot_annotation(tag_levels = "A")
+map
+ggsave("map1.pdf",plot = map, dpi =550, width = 30, height = 15, units = "cm")
+ggsave("map1.jpg",plot = map, dpi =550, width = 30, height = 15, units = "cm")
 
 ggsave('MIXEDMODEL.tiff', 
        height = 5, 
        width = 7,
        dpi = 500)
+
+
 
 ###random effect plot of m2
 randoms<-ranef(m2, condVar = TRUE) #grab intercepts 
@@ -95,46 +133,124 @@ random<-ggplot(intercept) +
         axis.text.y = element_text(size=13), axis.title = element_text(size = 15)) +
   scale_y_discrete(limits = rev((intercept$grp)))
 
-
-###let's separtate datasets and analyze only true islands
+################################################################################
+###let's separtate datasets and analyze only true islands##############################
+################################################################################
 df3<-df1 %>% filter(! SAR_TYPE == "Mainland")
 df4<-df1 %>% filter(! SAR_TYPE == "Insular")
 
-m5<-lmer(data =df3, response~ log_areas +  (1|Ecoregion))  #true island model
-m6<-lmer(data =df4, response~ log_areas +  (1|Ecoregion))  #mainlan model
-r.squaredGLMM(m5)
-summary(m5)
-r.squaredGLMM(m5)
-summary(m6)
-qqnorm(residuals(m5))
+df3$Island.Type<-as.factor(df3$Island.Type)
+df3$Ecoregion<-as.factor(df3$Ecoregion)
 
-pr3<-ggpredict(m5, c("log_areas", "Ecoregion"), type = "re")
-pr4<-ggpredict(m5, c("log_areas"), type = "fe")
+m5<-lmer(data =df3, response~ log_areas +  (1|Ecoregion))  #true island model
+m6<-lmer(data =df3, response~ log_areas +  (1+Island.Type|Ecoregion))  #true island model with slopes, correlation issues
+m7<-lmer(data =df3, response~ log_areas +  (1|Island.Type))  #true island model
+m8<-lmer(data =df3, response~ log_areas +  (1|Island.Type) +  (1|Ecoregion))  #true island model
+m9<-lmer(data =df3, response~ log_areas +  (1+log_areas|Ecoregion))  #true island model with slopes
+m10<-lmer(data =df3, response~ Island.Type + log_areas +  (1+log_areas|Ecoregion))  #true island model with slopes
+
+AICtab(m5,m7,m6, m8, m9,m10,m11, weights = TRUE)
+
+
+AICtab(m9,m10)
+
+summary(m9)
+summary(m10)
+
+r.squaredGLMM(m10)
+r.squaredGLMM(m9)
+
+
+AICctab(m5,m7, m8, m9,m10, weights = TRUE)
+
+summary(m8)
+hist(residuals(m10))
+qqnorm(residuals(m10))
+
+coef(m10)$Ecoregion #this gives random slope values and intercepts!!!
+
+pr3<-ggpredict(m10, c("log_areas","Ecoregion"), type = "re")
+plot(pr3)
+
+pr4<-ggpredict(m10, c("log_areas", "Island.Type"), type = "fe")
 insular1<-data.frame(pr3)
 insular2<-data.frame(pr4)
+plot(pr4)
 
-insular_only_model<-ggplot() +
-  geom_ribbon(data = insular2, aes(x =x, ymin = conf.low, ymax = conf.high), fill = "white",alpha = 0.3) +
-  geom_point(data = df3, aes(x = log_areas, y = response, color = Ecoregion), alpha = 0.5) +
-  geom_line(data = insular1, aes(x = x, y = predicted, color =group), lty="dashed") +
+whatislands<-df3 %>% dplyr::filter(Ecoregion %in% c("Nearctic", "Neotropic"))
+whatislands %>% filter(Ecoregion == "Neotropic" & Island.Type == "Oceanic") #37 islands oceanic
+whatislands %>% filter(Ecoregion == "Neotropic" & Island.Type == "Continental") #25 islands continental
+
+df3 %>% mutate(predictions = predict(m5)) %>%
+  ggplot(.) + geom_line(aes(x= log_areas, y = predictions, color = Ecoregion)) 
+
+
+insular_only_model_m<-ggplot() +
+  geom_ribbon(data = insular2, aes(x =x, ymin = conf.low, ymax = conf.high), fill = "white",alpha = 0.2) +
+  geom_point(data = df3, aes(x = log_areas, y = response, color = Ecoregion), alpha = 0.7) +
   geom_line(data = insular2, aes(x = x, y = predicted)) +
-  scale_color_viridis_d(option = "C") +
+  scale_color_viridis_d(option = "D") +
   labs(x = "Log(Area)", y = "Log(Species Richness)", color = "Biogeographic \nRealm") +
   theme_dark() +
   theme(axis.title = element_text(face= "bold", size =8),
         legend.text = element_text(size = 6),
-        legend.title = element_text(face = "bold", size =5))
-
-random_intercepts + {
-  marginal_effects + {
-    insular_only_model
-  }
-} +
-  plot_layout(ncol=1) +
-  plot_annotation(tag_levels = "A")
+        legend.title = element_text(face = "bold", size =5), legend.position = "none",
+        axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))
 
 
-ggsave('MIXEDMODEL.png', 
-       height = 5, 
-       width = 7,
-       dpi = 500)
+insular_only_model_r<-ggplot() +
+  geom_point(data = df3, aes(x = log_areas, y = response, color = Ecoregion), alpha = 0.7) +
+  geom_line(data = insular1, aes(x = x, y = predicted, color =group)) +
+  scale_color_viridis_d(option = "D") +
+  labs(x = "Log(Area)", y = "Log(Species Richness)", color = "Biogeographic \nRealm") +
+  theme_dark() +
+  theme(axis.title = element_text(face= "bold", size =8),
+        legend.text = element_text(size = 6),
+        legend.title = element_text(face = "bold", size =5), legend.position = "none",
+        axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))
+
+
+map<-(World_map | (insular_only_model_m / insular_only_model_r + plot_layout(guides = 'auto'))) + plot_layout(guides = 'auto', width = c(2,0.6)) + plot_annotation(tag_levels = "A")
+ggsave("map1.tiff",plot = map, dpi =550, width = 30, height = 15, units = "cm")
+
+##########Global map with slopes
+
+
+
+
+#proposal graphs
+ggplot() +
+  geom_point(data = df3, aes(x = log_areas, y = response, color = Ecoregion), alpha = 0.7, size = 3) +
+  geom_line(data = insular1, aes(x = x, y = predicted, color =group), size = 2) +
+  scale_color_viridis_d(option = "D") +
+  labs(x = "Log(Area)", y = "Log(Species Richness)", color = "Biogeographic \nRealm") +
+  theme_dark() +
+  theme(panel.background = element_rect(fill = "transparent",colour = NA),
+        plot.background = element_rect(fill = "transparent",colour = NA),
+        legend.background = element_rect(fill = "transparent",colour = NA),
+        legend.key = element_rect(fill = "transparent",colour = NA),
+        legend.text = element_text(size = 22, face = "bold", color = "white"),
+        legend.title = element_text(size = 22, face = "bold", color = "white"),
+        axis.title = element_text(face= "bold", size =22, color = "white"),
+        axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1, size =16, color ="white"),
+        axis.text.y = element_text(vjust = 0.5, hjust=1, size =16, color ="white"),
+        panel.grid = element_line(color = "white"))
+
+
+insular_only_model_m<-ggplot() +
+  geom_ribbon(data = insular2, aes(x =x, ymin = conf.low, ymax = conf.high), fill = "white",alpha = 0.5) +
+  geom_point(data = df3, aes(x = log_areas, y = response, color = Ecoregion), alpha = 0.8, size = 3) +
+  geom_line(data = insular2, aes(x = x, y = predicted),size = 1.5) +
+  scale_color_viridis_d(option = "D") +
+  labs(x = "Log(Area)", y = "Log(Species Richness)", color = "Biogeographic \nRealm") +
+  theme_dark() +
+  theme(panel.background = element_rect(fill = "transparent",colour = NA),
+        plot.background = element_rect(fill = "transparent",colour = NA),
+        legend.background = element_rect(fill = "transparent",colour = NA),
+        legend.key = element_rect(fill = "transparent",colour = NA),
+        legend.text = element_text(size = 22, face = "bold", color = "white"), legend.position = "none",
+        legend.title = element_text(size = 22, face = "bold", color = "white"),
+        axis.title = element_text(face= "bold", size =22, color = "white"),
+        axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1, size =16, color ="white"),
+        axis.text.y = element_text(vjust = 0.5, hjust=1, size =16, color ="white"),
+        panel.grid = element_line(color = "white"))
