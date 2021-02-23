@@ -9,7 +9,7 @@ library(bbmle)
 
 
 df<-read.csv("s_area_trial.csv") # load data
-#get rid of repeats
+#
 df <- df %>%
   filter(!Island_or_Mainland == "Mainland") %>%
   filter(!is.na(Species.Richness)) %>%
