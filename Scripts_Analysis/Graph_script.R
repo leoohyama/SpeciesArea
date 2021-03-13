@@ -46,7 +46,7 @@ SAR_tyype<-df %>%
         axis.title.x = element_blank())
 
 df$Island_Type2<-as.factor(df$Island_Type)
-levels(df$Island_Type2)<-c("Continental\n(true island)", "Habitat-patches",
+levels(df$Island_Type2)<-c("Continental\n(true island)", "Mainland Islands",
                            "Oceanic\n(true island)")
 island_type<-df %>%
   ggplot(.) + 
