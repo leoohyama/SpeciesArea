@@ -82,7 +82,10 @@ c_df<-df %>% filter(!Study.ID == 29) %>%
 
 boxplot(c_df$C ~ c_df$Ecoregion)
 
-
+c_df %>%
+  dplyr::select(SAR_type, C) %>%
+  group_by(SAR_type) %>%
+  summarise_each(funs(mean,sd,se=sd(.)/sqrt(n())))
 
 m1<-lm(data = c_df, C~SAR_type)
 exp(2.71)
