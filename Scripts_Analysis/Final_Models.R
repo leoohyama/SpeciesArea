@@ -6,15 +6,18 @@ library(nlme)
 library(tidyverse)
 library(car)
 library(viridis)
-
+getwd()
 ##Read Data
-df<-read.csv("Modelling_data.csv")
+df<-read.csv("/Users/leoohyama/Google Drive/Dissertation/Species_Area/SpeciesArea/Modelling_data.csv")
 df<-df %>% filter(!Study.ID %in% c("29"))
 length(unique(df$Study.ID))
 df %>% filter(SAR_type == "Mainland")
-mean(df$Z)
-df %>% group_by(Ecoregion) %>% summarise(n = n())
 
+mean(df$Z)
+
+
+df %>% group_by(Ecoregion) %>% summarise(n = n())
+hist(df$Z)
 #looking at isolation
 df %>% drop_na(Isolation_km, Exotic_percent) %>%
   ggplot(.) + geom_point(aes(x = Isolation_km, y =Z))

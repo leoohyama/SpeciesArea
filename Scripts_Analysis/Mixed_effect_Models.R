@@ -7,7 +7,6 @@ library(ggeffects)
 library(glmmTMB)
 library(bbmle)
 
-
 df<-read.csv("s_area_trial.csv") # load data
 #
 df <- df %>%

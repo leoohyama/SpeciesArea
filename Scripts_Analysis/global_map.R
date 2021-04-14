@@ -10,6 +10,7 @@ library(rnaturalearth)
 library(rnaturalearthdata)
 library(rgeos)
 
+setwd("~/Google Drive/Dissertation/Species_Area/SpeciesArea/")
 df<-read.csv("s_area_trial.csv") # load data
 df1<-read.csv("Modelling_data.csv") # load data
 
@@ -68,9 +69,10 @@ World_map<-ggplot() +
         legend.margin=margin(0,0,0,0),
         legend.box.margin=margin(-10,-10,-10,-10)) 
 World_map
+
 saveRDS(World_map, file = "worldmap.rds")
 rm(World_map)
-World_map<-readRDS("worldmap.rds")
+World_map<-readRDS("~/Google Drive/Dissertation/Species_Area/SpeciesArea/worldmap.rds")
 
 ggsave("map1.tiff",plot = last_plot(), dpi =600, width = 25, height = 15, units = "cm")
 

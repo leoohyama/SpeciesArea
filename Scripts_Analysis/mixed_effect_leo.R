@@ -2,7 +2,7 @@
 #########Mixed Effect Piecewise Models - Leo###############
 ##########################################################
 
-
+par(mfrow=c(1,1))
 library(dplyr)
 
 dat <- read.csv("~/Downloads/Ohyama_Island_Datav2.csv")
