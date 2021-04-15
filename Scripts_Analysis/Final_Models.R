@@ -7,55 +7,37 @@ library(tidyverse)
 library(car)
 library(viridis)
 getwd()
+
+
 ##Read Data
 df<-read.csv("/Users/leoohyama/Google Drive/Dissertation/Species_Area/SpeciesArea/Modelling_data.csv")
-df<-df %>% filter(!Study.ID %in% c("29"))
-length(unique(df$Study.ID))
-df %>% filter(SAR_type == "Mainland")
-
-mean(df$Z)
 
 
-df %>% group_by(Ecoregion) %>% summarise(n = n())
-hist(df$Z)
-#looking at isolation
+#looking at isolation via plots
 df %>% drop_na(Isolation_km, Exotic_percent) %>%
   ggplot(.) + geom_point(aes(x = Isolation_km, y =Z))
 df %>% drop_na(Isolation_km) %>%
   ggplot(.) + geom_point(aes(x = log(Isolation_km), y =log(Total.species.richness.on.islands), color = Island_Type))
-df %>% drop_na(Isolation_km, Exotic_percent) %>%
-  ggplot(.) + geom_point(aes(x = log(Isolation_km), y =, color = Island_Type))
 
 
-isolation<-df %>% drop_na(Isolation_km,Exotic_percent) 
-isolation1<-df %>% drop_na(Isolation_km) 
+isolation<-df %>% drop_na(Isolation_km,Exotic_percent) #get rid of NAs 
+isolation1<-df %>% drop_na(Isolation_km) #get rid of NAs 
 
-m1<-lm(data = isolation1, log(Z)~log(Isolation_km))
-summary(m1)
+
+#model assessing slope ~ isolation
 hist(isolation1$Z)
 m1<-glm(data = isolation1, Z~log(Isolation_km), family = Gamma(link="log"))
+summary(m1)
+par(mfrow=c(2,2))
 plot(m1)
+par(mfrow=c(1,1))
 
-
-m1<-lm(data = isolation1, log(Isolation_km)~Island_Type)
-m2<-glm(data = isolation1, Isolation_km~Island_Type, family = Gamma(link = "log"))
-AICc(m1,m2)
-summary(m2)
-r.squaredGLMM(m2)
-
-hist(isolation1$Isolation_km)
-
-m1<-glm(data = isolation, Exotic_percent~log(Isolation_km), family = Gamma(link = "log"))
-
-summary(m1)  
-hist(isolation$Exotic_percent)
-
-#average island per study
+#Calculating average number of islands per study
 df %>% group_by(SAR_type) %>%
   summarise(mean= mean(Number.of.islands.patches.in.study, na.rm =T))
 
 
-#let's look at exotic percentage
+#Assessing non-native ant proportions
 df %>%
   drop_na(Exotic_percent) %>%
   dplyr::select(SAR_type, Exotic_percent) %>%
@@ -66,20 +48,18 @@ df %>%
   dplyr::select(SAR_type, Ecoregion, Exotic_percent) %>%
   group_by(SAR_type, Ecoregion) %>%
   summarise(tot = n(), mean = mean(Exotic_percent))
-
 df %>%
   drop_na(Exotic_percent) %>%
   dplyr::select(Island_Type, Exotic_percent) %>%
   group_by(Island_Type) %>%
   summarise(tot = n(), mean = mean(Exotic_percent))
-
 df %>%
   drop_na(Exotic_percent) %>%
   dplyr::select(Exotic_percent) %>%
   arrange(desc(Exotic_percent))
 
-#C analysis
-c_df<-df %>% filter(!Study.ID == 29) %>%
+#Analyzing intercepts
+c_df<-df %>% 
   filter(!z_origin == "paper") %>%
   dplyr::select(SAR_type, Ecoregion,C)
 
@@ -89,20 +69,14 @@ c_df %>%
   dplyr::select(SAR_type, C) %>%
   group_by(SAR_type) %>%
   summarise_each(funs(mean,sd,se=sd(.)/sqrt(n())))
-
+#OLS assessing C ~ SAR_type
 m1<-lm(data = c_df, C~SAR_type)
-exp(2.71)
-exp(1.845)
 summary(m1)
+par(mfrow=c(2,2))
+plot(m1)
+par(mfrow=c(1,1))
 
-glmgamma<-c_df %>% filter(! C < 0)
-m2<-glm(data = glmgamma, C~SAR_type, family = Gamma(link = "log"))
-summary(m2)
-r.squaredGLMM(m2)
-glmgamma$residuals<-residuals(m2)
-boxplot(glmgamma$residuals ~ glmgamma$SAR_type)
-plot(m2)
-
+#Summary statistics for intercept
 c_df %>%
   group_by(SAR_type, Ecoregion) %>%
   summarise_each(funs(mean,sd,se=sd(.)/sqrt(n())))
@@ -122,7 +96,10 @@ c_df %>%
 #anova 
 anova_df<-df
 
+#plot of sloep by sar_type
 boxplot(anova_df$Z ~ anova_df$SAR_type)
+
+#means of slope values for both insular and mainland
 mean(anova_df$Z[anova_df$SAR_type == "Mainland"])
 mean(anova_df$Z[anova_df$SAR_type == "Insular"])
 
