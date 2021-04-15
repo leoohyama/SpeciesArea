@@ -1,4 +1,4 @@
-####Running Models to find z scores
+####Running Models to find z values for each study
 
 #load rar data file
 
@@ -13,4 +13,4 @@ df1<-df %>%
 m1<-lm(data = df1, log(Species.Richness)~log(Area_km))
 summary(m1)
 
-plot(log(df1$Island.Area..m2.), log(df1$Species.Richness))
+
