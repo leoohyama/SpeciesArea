@@ -1,7 +1,6 @@
-##extracting climate
-df<-read.csv("Modelling_data.csv", encoding = "UTF-8")
-df
-head(df)
+##This script extracts climate data from world clim based on Dataset1's coordinates
+df<-read.csv("Modelling_data.csv", encoding = "UTF-8") #Read in dataset1
+
 library(tidyverse)
 library(spocc)
 library(raster)
