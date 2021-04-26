@@ -16,7 +16,8 @@ library(segmented)
 library(nlme)
 
 dat <- read.csv("D:\\documents\\Work\\On-going projects\\Ant SARs\\Ohyama_Island_Datav2.csv")
-dat<-read.csv("Tom_Matthews_Code/Ohyama_Island_Datav2(1).csv")
+#line below loads data that is stored on the repo
+##dat<-read.csv("Tom_Matthews_Code/Ohyama_Island_Datav2.csv")
 dat$Area <- dat$Area / 1e+6 #turn areas into km2
 
 #create global, insular and mainland datasets
@@ -127,7 +128,7 @@ mai_col <- vapply(mainland_ord$Biogeo_realm, function(x){
 
 ##make plots
 
-jpeg(file = "Threshold_best_models_ins_col.jpeg", width = 30, height = 15, units = "cm", res = 300)
+#jpeg(file = "Threshold_best_models_ins_col.jpeg", width = 30, height = 15, units = "cm", res = 300)
 
 par(mfrow = c(1, 2))
 par(mar = c(5.1, 4.8, 4.1, 2))
@@ -139,8 +140,74 @@ legend(-9, 210, legend=c("Nearctic", "Palearctic", "Indomalaya", "Afrotropic",
                          "Oceania", "Australasia", "Neotropic"),
        col=Okabe_Ito[1:7], pch = 16, cex=1.8)
 
-dev.off()
+#dev.off()
 
+###############################################
+#ggplot version of figure 5 by Leo
+###############################################
+
+library(patchwork)
+library(ggplot2)
+#Setup dataframe ggplot2th semi-log and log-log threshold predictions
+xypred.cont1 <- data.frame("x" = seq(min(log(insular$Area)), max(log(insular$Area)), 
+                                     (max(log(insular$Area)) - min(log(insular$Area)))/1000))
+
+
+
+xypred.cont2 <- data.frame("x" = seq(min(log(insular$Area)), max(log(insular$Area)), 
+                                    (max(log(insular$Area)) - min(log(insular$Area)))/1000))
+
+#Predicting the log-log model
+x1<-f1[[1]]
+xypred.cont1$pred<-stats::predict(x1[[1]], xypred.cont1)
+#Predicting the semi-log model
+x2<-f2[[1]]
+xypred.cont2$pred<-stats::predict(x2[[1]], xypred.cont2)
+
+
+
+###log-log threshold model
+log_log<-ggplot(data=NULL) + 
+  geom_point(data = insular, mapping = aes(x = log(Area), y = log(Richness), color = Biogeo_realm),
+             size = 2, alpha = 0.7) +
+  geom_line(data=xypred.cont1, mapping =  aes(x = x, y = pred), size =1.2) +
+  scale_color_viridis_d(option = "D") +
+  labs(x = "Log(Area)", y = "Log(Richness)", color = NULL,
+       title = "Insular log-log") +
+  theme_bw() +
+  theme(axis.title = element_text(face= "bold", size =14),
+        legend.title = element_blank(),
+        legend.text = element_blank(),
+        legend.position = "none",
+        axis.text = element_text(size = 10),title = element_text(face= "bold", size =14))
+
+###semi-log threshold model
+semi_log<-ggplot(data=NULL) + 
+  geom_point(data = insular, mapping = aes(x = log(Area), y = Richness, color = Biogeo_realm),
+             size =  2, alpha = 0.7) +
+  geom_line(data=xypred.cont2, mapping =  aes(x = x, y = pred), size =1.2) +
+  scale_color_viridis_d(option = "D") +
+  labs(x = "Log(Area)", y = "Species Richness", color = "Biogeographical\nRealm",
+       title = "Insular semi-log") +
+  theme_bw() +
+  theme(axis.title = element_text(face= "bold", size =14),
+        legend.title = element_text(face = "bold", size = 12),
+        legend.text = element_text(size = 10),
+        axis.text = element_text(size = 10),
+        title = element_text(face= "bold", size =14))
+
+#use patchwork to stich the two plots
+log_log + semi_log
+
+
+ggsave(file = "Threshold_best_models_mai_col.jpeg", plot = last_plot(),
+       width = 30, height = 15, units = "cm", dpi = 600)
+###############################################
+##############End of ggplot script##############
+###############################################
+###############################################
+
+###########
 jpeg(file = "Threshold_best_models_mai_col.jpeg", width = 30, height = 15, units = "cm", res = 300)
 
 par(mfrow = c(1, 2))

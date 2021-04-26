@@ -23,7 +23,7 @@ ecoregions<-df %>%
   geom_boxplot(aes(x = Ecoregion, y = Z, fill = Ecoregion)) +
   scale_fill_viridis_d() +
   theme_bw() +
-  labs(fill="Biogeographic \nRegion") +
+  labs(fill="Biogeographic \nRealm") +
   theme(axis.ticks.x = element_blank(),
         legend.text = element_text(size = 12),
         legend.title = element_text(size=12, face= "bold"),
@@ -102,7 +102,7 @@ figure_x<-ggplot(data = fancy) +
              pch = 21, color = "black", size = 1.8,
              position = position_dodge(width = 1)) +
   geom_hline(yintercept = 0) +
-  labs(x = "Mean Annual Precipitation", y = "", fill = "Biogeographic \nRegion",
+  labs(x = "Mean Annual Precipitation", y = "", fill = "Biogeographic \nRealm",
        color = "Biogeographic \nRegion") +
   scale_y_continuous(labels = abs(pretty(fancy$Z))) +
   scale_fill_viridis_d(option = "D") +
