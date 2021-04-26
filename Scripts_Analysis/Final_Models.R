@@ -191,8 +191,8 @@ figxyz<-ggplot() +
   geom_ribbon(mydf, mapping = aes(x = x, ymin = conf.low, ymax=conf.high, fill = group, color = NULL), 
               alpha =0.3) +
   geom_line(mydf,mapping = aes(x = x, y = predicted, color = group), size =1.1) +
-  scale_fill_manual(values  = c("skyblue", "orange")) +
-  scale_color_manual(values  = c("skyblue", "orange")) +
+  scale_fill_manual(values  = c("#2e6f8e", "#85D54AFF" )) +
+  scale_color_manual(values  = c("#2e6f8e", "#85D54AFF" )) +
   labs(x = "Mean Annual Precipitation (Scaled)", y = "Z", fill = "Species\n-Area\nType", 
        color = "Species\n-Area\nType")+
   theme_bw() +
@@ -208,7 +208,7 @@ ggsave('figxyz.jpg',
        height = 4, 
        width = 5.5,
        dpi = 500)
-
+viridis(12)
 
 ###running all models with studies of 10 or more islands 
 ##Read Data

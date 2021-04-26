@@ -38,10 +38,10 @@ island %>% group_by(Island.Type) %>%
 
 ###Models for insular
 m1<-lmer(data =island, response~ log_areas_km + (1+log_areas_km|Ecoregion)) 
-
+summary(m1)
 ###Models for mainland
-m1<-lmer(data =mainland, response~ log_areas_km + (1+log_areas_km|Ecoregion)) 
-isSingular(m1) #singularity in model
+m2<-lmer(data =mainland, response~ log_areas_km + (1+log_areas_km|Ecoregion)) 
+isSingular(m2) #singularity in model
 
 #extract marginal and conditonal effects
 pr<-ggpredict(m1, c("log_areas_km", "Ecoregion"), type = "re")
@@ -54,14 +54,14 @@ insular2<-data.frame(pr2) #fixed ef
 
 
 insular_only_model_m<-ggplot() +
-  geom_ribbon(data = insular2, aes(x =x, ymin = conf.low, ymax = conf.high),fill = "white",alpha = 0.2) +
+  geom_ribbon(data = insular2, aes(x =x, ymin = conf.low, ymax = conf.high),fill = "grey",alpha = 0.5) +
   geom_point(data = island, aes(x = log_areas_km, y = response, fill = Ecoregion), pch = 21,
              color = "black",alpha = 0.7, size = 1.5) +
   geom_line(data = insular2, aes(x = x, y = predicted), color = "black", size = 1) +
   scale_color_viridis_d(option = "D") +
   scale_fill_viridis_d(option = "D") +
   labs(x = "Log(Area)", y = "Log(Species Richness)", color = "Biogeographic \nRealm") +
-  theme_dark() +
+  theme_bw() +
   theme(axis.title = element_text(face= "bold", size =12),
         axis.text = element_text(size =10),
         legend.text = element_text(size = 6),
@@ -77,7 +77,7 @@ insular_only_model_r<-ggplot() +
   scale_color_viridis_d(option = "D") +
   scale_fill_viridis_d(option = "D") +
   labs(x = "Log(Area)", y = "Log(Species Richness)", color = "Biogeographic \nRealm") +
-  theme_dark() +
+  theme_bw() +
   theme(axis.title = element_text(face= "bold", size =12),
         axis.text = element_text(size =10),
         legend.text = element_text(size = 6),
@@ -87,8 +87,8 @@ insular_only_model_r<-ggplot() +
 insular_only_model_r
 
 #Save plots 
-saveRDS(insular_only_model_r, "random_effect_plot")
-saveRDS(insular_only_model_m, "fixed_effect_plot")
+saveRDS(insular_only_model_r, "random_effect_plot.rds")
+saveRDS(insular_only_model_m, "fixed_effect_plot.rds")
 
 #load up plots and world map
 insular_only_model_m<-readRDS("fixed_effect_plot")

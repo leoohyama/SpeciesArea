@@ -8,6 +8,7 @@ library(raster)
 library(rnaturalearth)
 library(rnaturalearthdata)
 library(rgeos)
+library(sp)
 
 setwd("~/Google Drive/Dissertation/Species_Area/SpeciesArea/")
 df<-read.csv("s_area_trial.csv") # load data
@@ -32,25 +33,45 @@ biogeeographicv2<-st_intersection(world, biogeo_region)
 unique(df[,c("Lat", "Long", "Study_ID")])
 
 #Fix Species richness value
-df1$SR[df1$Study_ID == 27] <-81
+df$SR[df$Study_ID == 27] <-81
 #Replace Oceanic with Oceania
 biogeeographicv2$REALM<-gsub("Oceanic", "Oceania", biogeeographicv2$REALM)
 #Get rid of Antarctica
 biogeeographicv3<-biogeeographicv2 %>%
   filter(!REALM == "Antarctic")
 
+st_crs(biogeeographicv3) <- 4326
+st_crs(coastlines) <- 4326
+crs(biogeeographicv3)
+crs(coastlines)
+
+#change projection to equal area
+st_crs(biogeeographicv3) #this tells you what coordinate reference system you are in
+new_proj <- "+proj=moll +datum=WGS84 +no_defs +over" #assign mollweide projection 
+biogeeographicv4 <- st_transform(biogeeographicv3, crs = new_proj) # reproject 
+st_crs(biogeeographicv4) #notice how we changed the projected CRS?
+
+st_crs(coastlines) #this tells you what coordinate reference system you are in
+new_proj <- "+proj=moll +datum=WGS84 +no_defs +over" #assign mollweide projection 
+coastlines2 <- st_transform(coastlines, crs = new_proj) # reproject 
+st_crs(coastlines2)
+
+
+#make coordinate point data
+
+df1<-st_as_sf(df1, coords = c("Lon", "Lat")) %>%
+  st_set_crs(st_crs(coastlines))
+
 #Plot world map
 World_map<-ggplot() + 
-  geom_sf(data = biogeeographicv3, aes(fill = REALM, color = REALM)) +
+  geom_sf(data = biogeeographicv4, aes(fill = REALM, color = REALM)) +
   guides(fill = guide_legend(override.aes = list(size=0.5))) +
-  geom_sf(data = coastlines) +
+  geom_sf(data = df1, aes(size =Total.species.richness.on.islands ),
+          fill = "orange" ,color = "white", pch=21, alpha =0.7, show.legend = F) +
   scale_fill_viridis_d(option = "D") +
   scale_colour_viridis_d(option = "D") +
   theme_minimal() +
-  geom_point(data = df1, aes(x = Lon, y = Lat, 
-                             size = Total.species.richness.on.islands 
-                             ), fill = "orange" ,color = "white", pch=21, alpha =0.7, show.legend = F) +
-  scale_size_continuous(range = c(1,14)) +
+  scale_size_continuous(range = c(1,15)) +
   labs(fill = "Biogeographic \nRealm", color = "Biogeographic \nRealm") +
   theme(axis.title = element_blank(),
         panel.background = element_rect(fill = "grey65"), legend.position = "top",
@@ -65,45 +86,15 @@ World_map<-ggplot() +
         legend.box.margin=margin(-10,-10,-10,-10)) 
 World_map
 
+
+
 #Save for plotting fill figure later
 saveRDS(World_map, file = "worldmap.rds")
 rm(World_map)
 World_map<-readRDS("~/Google Drive/Dissertation/Species_Area/SpeciesArea/worldmap.rds")
 
+
+
 ggsave("map1.tiff",plot = last_plot(), dpi =600, width = 25, height = 15, units = "cm")
-
-
-
-
-
-
-#######After running script for mixed model
-####until you get the object "slopes"
-realms<-rownames(slopes)
-unique(biogeeographicv2$REALM) #cross validate names of realms
-realms<-c("Afrotropical", "Australasian", "Indo-Malay", "Nearctic", "Neotropical", "Oceanic", "Palearctic")
-slopes<-as.tibble(slopes)
-slopes$REALM<-realms
-
-colnames(slopes)<-c("intercept", "slope", "REALM")
-biogeeographic_slopes<-biogeeographicv2
-unique(biogeeographic_slopes$REALM) #cross validate names of realms
-
-biogeeographic_slopes<-left_join(biogeeographic_slopes, slopes, by = "REALM")
-
-
-ggplot() + 
-  geom_sf(data = biogeeographic_slopes, aes(fill = slope, color = slope)) +
-  geom_sf(data = coastlines) +
-  scale_fill_viridis_c(option = "D") +
-  scale_color_viridis_c(option = "D") +
-  theme_classic() +
-  labs(size = "No. of Islands", fill = "Biogeographic \nRealm", color = "Biogeographic \nRealm") +
-  theme(axis.title = element_blank())
-
-ggplot() + 
-  geom_sf(data = biogeeographic_slopes, aes(fill = slope, color = slope)) +
-  geom_sf(data = coastlines) +
-  scale_fill
 
 

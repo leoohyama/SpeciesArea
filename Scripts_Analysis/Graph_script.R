@@ -27,7 +27,8 @@ ecoregions<-df %>%
   theme(axis.ticks.x = element_blank(),
         legend.text = element_text(size = 12),
         legend.title = element_text(size=12, face= "bold"),
-        axis.text.x = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text(size = 10, face = 'bold'),
         axis.title.x = element_blank(),
         axis.title.y = element_text(size = 14,angle = 0, face = 'bold', vjust = 0.5))
 
@@ -37,25 +38,26 @@ SAR_tyype<-df %>%
   geom_boxplot(aes(x = SAR_type, y = Z),fill = "grey") +
   scale_fill_viridis_d(option = "E") +
   theme_bw() +
-  theme(
+  theme(axis.text.x = element_text(size = 10, face = 'bold'),
         axis.title.y = element_text(size = 14,angle = 0, face = 'bold', vjust = 0.5),
         axis.title.x = element_blank())
 
 df$Island_Type2<-as.factor(df$Island_Type)
-levels(df$Island_Type2)<-c("Continental\n(true island)", "Mainland Islands",
+levels(df$Island_Type2)<-c("Continental\n(true island)", "Mainland\nIslands",
                            "Oceanic\n(true island)")
 
 #by island type
 island_type<-df %>%
   ggplot(.) + 
-  geom_boxplot(aes(x = Island_Type2, y = Z, fill = Island_Type2)) +
+  geom_boxplot(aes(x = Island_Type2, y = Z),fill = "grey") +
   labs(fill= "Island Type")+
   scale_fill_manual(values  = pal) +
   theme_bw() +
   theme(axis.ticks.x = element_blank(),
         legend.text = element_text(size = 12),
         legend.title = element_text(size=12, face= "bold"),
-        axis.text.x = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text(size = 10, face = 'bold'),
         axis.title.x = element_blank(),
         axis.title.y = element_text(size = 14,angle = 0, face = 'bold', vjust = 0.5))
 
@@ -94,8 +96,6 @@ fancy<-rbind(top, bottom)
 lb1 <- paste("R^2") #label for r-square
 
 figure_x<-ggplot(data = fancy) + 
-  geom_rect(mapping=aes(xmin=0, xmax=3100, ymin=-1, ymax=0), fill="grey", alpha=0.5)+ #r2
-  geom_rect(mapping=aes(xmin=0, xmax=3100, ymin=0, ymax=1), fill="cornsilk2", alpha=0.5) + #Z
   geom_bar(stat= "identity", aes(x = Mean_Annual_Precip, y = Z, fill = Ecoregion), 
            position = position_dodge(width = 1), width = 4) +
   geom_point(aes(x = Mean_Annual_Precip, y = Z, fill = Ecoregion),
@@ -110,6 +110,7 @@ figure_x<-ggplot(data = fancy) +
   coord_flip(xlim = c(0,3100), ylim = c(-1,1),expand = FALSE) +
   annotate("text", x = 2900, y = 0.5,size = 6, label = "Z-value")+
   annotate("text", x = 2900, y = -0.5,size = 6, label = lb1, parse =T) +
+  theme_bw() +
   theme(axis.title.y = element_text(face= "bold", size =14),
         legend.title = element_text(face = "bold", size = 12),
         legend.text = element_text(size = 10),
