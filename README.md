@@ -1,4 +1,6 @@
 # SpeciesArea
 This repo contains all code and data used for studying the species-area relationship in ant ecology. 
 More to come on manuscript information.
-https://github.com/leoohyama/leoohyama.github.io/blob/Images/islands.png?raw=true
+
+
+![Alt text](islands.png?raw=true "Title")
