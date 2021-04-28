@@ -3,4 +3,4 @@ This repo contains all code and data used for studying the species-area relation
 More to come on manuscript information.
 
 
-![Alt text](islands.png?raw=true "Title")
+![Alt text](Figures/Figure1.jpg?raw=true "Title")
